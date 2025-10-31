@@ -342,7 +342,7 @@ def main():
         print("Sample files have been created: example_molecule.txt")
 
     # Reading files
-    filename = input("Please enter the file path and file name (e.g., C:\Users\example_molecule.txt, press Enter directly to use example_molecule.txt): ").strip()
+    filename = input("Please enter the file path and file name (Press Enter directly to use example_molecule.txt): ").strip()
     if not filename:
         filename = 'example_molecule.txt'
 
@@ -445,4 +445,5 @@ def main():
 if __name__ == "__main__":
 
     main()
+
 
