@@ -4,7 +4,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.widgets import Slider
 import re
 
-# 元素的颜色映射
+# Element color mapping
 element_colors = {
     'H': 'white',
     'C': 'gray',
@@ -17,7 +17,7 @@ element_colors = {
     'Br': 'brown'
 }
 
-# 元素的原子半径（用于球的大小）
+# Atomic radius of an element (used for the size of a sphere)
 element_radii = {
     'H': 30,
     'C': 70,
@@ -30,7 +30,7 @@ element_radii = {
     'Br': 115
 }
 
-# 共价半径（用于判断成键）
+# Covalent radius (used to determine bonding)
 covalent_radii = {
     'H': 0.31,
     'C': 0.76,
@@ -45,19 +45,19 @@ covalent_radii = {
 
 
 def parse_xyz_dipole_file(filename):
-    """解析包含xyz坐标和偶极矩的文件"""
+    """Parse files containing xyz coordinates and dipole moments"""
     with open(filename, 'r', encoding='utf-8') as f:
         lines = f.readlines()
 
-    # 解析分子名称
+    # Deciphering molecular names
     molecule_name = lines[0].strip()
     if molecule_name.startswith('#'):
         molecule_name = molecule_name[1:].strip()
 
-    # 解析原子数
+    # Analysis of the number of atoms
     atom_count = int(lines[1].strip())
 
-    # 解析原子坐标
+    # Analyzing atomic coordinates
     atoms = []
     for i in range(3, 3 + atom_count):
         parts = lines[i].strip().split()
@@ -68,11 +68,11 @@ def parse_xyz_dipole_file(filename):
             z = float(parts[3])
             atoms.append({'element': element, 'x': x, 'y': y, 'z': z})
 
-    # 解析偶极矩
+    # Analytical dipole moment
     dipole = {}
     for line in lines[3 + atom_count:]:
         if 'X=' in line and 'Y=' in line and 'Z=' in line:
-            # 使用正则表达式提取数值
+            # Extracting values ​​using regular expressions
             x_match = re.search(r'X=\s*([-\d.]+)', line)
             y_match = re.search(r'Y=\s*([-\d.]+)', line)
             z_match = re.search(r'Z=\s*([-\d.]+)', line)
@@ -91,7 +91,7 @@ def parse_xyz_dipole_file(filename):
 
 
 def calculate_bonds(atoms, max_bond_factor=1.3):
-    """计算原子间的化学键"""
+    """Calculate the chemical bonds between atoms"""
     bonds = []
     n_atoms = len(atoms)
 
@@ -100,14 +100,14 @@ def calculate_bonds(atoms, max_bond_factor=1.3):
             atom1 = atoms[i]
             atom2 = atoms[j]
 
-            # 计算距离
+            # Calculate distance
             distance = np.sqrt(
                 (atom2['x'] - atom1['x']) ** 2 +
                 (atom2['y'] - atom1['y']) ** 2 +
                 (atom2['z'] - atom1['z']) ** 2
             )
 
-            # 判断是否成键
+            # Determine if bonding occurs
             max_bond_length = (
                                       covalent_radii.get(atom1['element'], 0.7) +
                                       covalent_radii.get(atom2['element'], 0.7)
@@ -124,39 +124,39 @@ def visualize_molecule_with_dipole(molecule_name, atoms, dipole, bonds,
                                    title_size=16, element_label_size=10,
                                    fig_size=(12, 10)):
     """
-    可视化分子结构和偶极矩
+    Visualization of molecular structure and dipole moment
 
-    参数:
-    - axis_label_size: 坐标轴标签字号
-    - tick_label_size: 坐标轴刻度标签字号
-    - title_size: 标题字号
-    - element_label_size: 元素标签字号
-    - fig_size: 图形尺寸（宽，高）
+    parameter:
+    - axis_label_size: Axis label font size
+    - tick_label_size: Axis tick label font size
+    - title_size: Title font size
+    - element_label_size: Element tag font size
+    - fig_size:Graphic dimensions (width, height)
 
-    注意：
-    - 原子坐标单位：Å (埃)
-    - 偶极矩单位：Debye
-    - 偶极矩矢量仅用于显示方向，长度经过缩放以便于可视化
+    Notice：
+    - Atomic coordinate units：Å (angstrom)
+    - Dipole moment unit：Debye
+    - The dipole moment vector is used only to indicate direction; its length is scaled for easier visualization.
     """
     fig = plt.figure(figsize=fig_size)
     ax = fig.add_subplot(111, projection='3d')
 
-    # 提取原子坐标
+    # Extracting atomic coordinates
     x_coords = [atom['x'] for atom in atoms]
     y_coords = [atom['y'] for atom in atoms]
     z_coords = [atom['z'] for atom in atoms]
 
-    # 计算分子中心
+    # Calculation of molecular center
     center_x = np.mean(x_coords)
     center_y = np.mean(y_coords)
     center_z = np.mean(z_coords)
 
-    # 中心化坐标
+    # Centralized coordinates
     x_coords = [x - center_x for x in x_coords]
     y_coords = [y - center_y for y in y_coords]
     z_coords = [z - center_z for z in z_coords]
 
-    # 绘制化学键
+    # Drawing chemical bonds
     for bond in bonds:
         i, j = bond
         ax.plot([x_coords[i], x_coords[j]],
@@ -164,81 +164,81 @@ def visualize_molecule_with_dipole(molecule_name, atoms, dipole, bonds,
                 [z_coords[i], z_coords[j]],
                 'k-', linewidth=2, alpha=0.6)
 
-    # 绘制原子
+    # Drawing atoms
     for i, atom in enumerate(atoms):
         color = element_colors.get(atom['element'], 'gray')
         size = element_radii.get(atom['element'], 50)
         ax.scatter(x_coords[i], y_coords[i], z_coords[i],
                    c=color, s=size, edgecolors='black', linewidths=1, alpha=0.8)
 
-        # 添加元素标签（可调整字号）
+        # Add element tags (font size can be adjusted)
         ax.text(x_coords[i], y_coords[i], z_coords[i] + 0.3,
                 atom['element'], fontsize=element_label_size, ha='center')
 
-    # 绘制偶极矩矢量
+    # Draw the dipole moment vector
     origin = [0, 0, 0]
-    scale = 2  # 矢量缩放因子（仅用于可视化，不代表实际单位转换）
+    scale = 2  # Vector scaling factor (for visualization purposes only, does not represent actual unit conversion)
 
-    # 注意：偶极矩的单位是Debye，而坐标轴的单位是Å
-    # 这里的scale仅用于让矢量在图中清晰可见，不是单位转换
+    # Note: The unit of dipole moment is Debye, while the unit of the coordinate axes is Å.
+    # The scale here is only used to make vectors clearly visible in the graph, not for unit conversion.
 
-    # X分量（红色）
+    # X component (red)
     if abs(dipole['x']) > 0.001:
         ax.quiver(origin[0], origin[1], origin[2],
                   dipole['x'] * scale, 0, 0,
                   color='red', arrow_length_ratio=0.3, linewidth=3,
                   label=f'X: {dipole["x"]:.3f} D')
 
-    # Y分量（绿色）
+    # Y component (green)
     if abs(dipole['y']) > 0.001:
         ax.quiver(origin[0], origin[1], origin[2],
                   0, dipole['y'] * scale, 0,
                   color='green', arrow_length_ratio=0.3, linewidth=3,
                   label=f'Y: {dipole["y"]:.3f} D')
 
-    # Z分量（蓝色）
+    # Z component (blue)
     if abs(dipole['z']) > 0.001:
         ax.quiver(origin[0], origin[1], origin[2],
                   0, 0, dipole['z'] * scale,
                   color='blue', arrow_length_ratio=0.3, linewidth=3,
                   label=f'Z: {dipole["z"]:.3f} D')
 
-    # 总偶极矩（黄色）
+    # Total dipole moment (yellow)
     ax.quiver(origin[0], origin[1], origin[2],
               dipole['x'] * scale, dipole['y'] * scale, dipole['z'] * scale,
               color='gold', arrow_length_ratio=0.3, linewidth=4,
               label=f'Total: {dipole["total"]:.3f} D')
 
-    # 设置图形属性 - 可调整字号
+    # Set graphic properties - Adjust font size
     ax.set_xlabel('X (Å)', fontsize=axis_label_size, labelpad=10)
     ax.set_ylabel('Y (Å)', fontsize=axis_label_size, labelpad=10)
     ax.set_zlabel('Z (Å)', fontsize=axis_label_size, labelpad=10)
     ax.set_title(f'{molecule_name}\nDipole Moment Visualization', fontsize=title_size, pad=20)
 
-    # 设置坐标轴刻度标签字号
+    # Set the font size of the axis tick labels
     ax.tick_params(axis='x', labelsize=tick_label_size)
     ax.tick_params(axis='y', labelsize=tick_label_size)
     ax.tick_params(axis='z', labelsize=tick_label_size)
 
-    # 设置等比例轴
+    # Set proportional axis
     max_range = np.array([x_coords, y_coords, z_coords]).max() * 1.5
     ax.set_xlim([-max_range, max_range])
     ax.set_ylim([-max_range, max_range])
     ax.set_zlim([-max_range, max_range])
 
-    # 添加图例
+    # Add legend
     ax.legend(loc='upper right', fontsize=10)
 
-    # 添加网格
+    # Add grid
     ax.grid(True, alpha=0.3)
 
-    # 添加偶极矩信息文本
+    # Add dipole moment information text
     dipole_text = f'Dipole Moment (Debye)\nX: {dipole["x"]:.4f}\nY: {dipole["y"]:.4f}\nZ: {dipole["z"]:.4f}\nTotal: {dipole["total"]:.4f}'
     ax.text2D(0.02, 0.98, dipole_text, transform=ax.transAxes,
               fontsize=10, verticalalignment='top',
               bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
 
-    # 使视图可旋转
+    # Make the view rotatable
     ax.view_init(elev=20, azim=45)
 
     plt.tight_layout()
@@ -246,26 +246,26 @@ def visualize_molecule_with_dipole(molecule_name, atoms, dipole, bonds,
 
 
 def create_interactive_view(molecule_name, atoms, dipole, bonds):
-    """创建带滑块的交互式视图"""
+    """Create an interactive view with sliders"""
     fig = plt.figure(figsize=(14, 10))
 
-    # 创建主要的3D图
+    # Create the main 3D model
     ax = fig.add_subplot(111, projection='3d')
     plt.subplots_adjust(bottom=0.25)
 
-    # 初始视角
+    # Initial view
     elev_init = 20
     azim_init = 45
 
-    # 创建滑块轴
+    # Create slider axis
     ax_elev = plt.axes([0.1, 0.1, 0.8, 0.03])
     ax_azim = plt.axes([0.1, 0.05, 0.8, 0.03])
 
-    # 创建滑块
+    # Create a slider
     slider_elev = Slider(ax_elev, 'Elevation', -90, 90, valinit=elev_init)
     slider_azim = Slider(ax_azim, 'Azimuth', 0, 360, valinit=azim_init)
 
-    # 更新函数
+    # Update function
     def update(val):
         ax.view_init(elev=slider_elev.val, azim=slider_azim.val)
         fig.canvas.draw_idle()
@@ -273,15 +273,15 @@ def create_interactive_view(molecule_name, atoms, dipole, bonds):
     slider_elev.on_changed(update)
     slider_azim.on_changed(update)
 
-    # 绘制分子和偶极矩
+    # Plotting molecules and dipole moments
     visualize_molecule_with_dipole(molecule_name, atoms, dipole, bonds)
 
     plt.show()
 
 
 def main():
-    """主函数"""
-    # 创建示例文件（如果需要）
+    """main function"""
+    # Create a sample file (if needed).
     create_example_file = True
 
     if create_example_file:
@@ -339,82 +339,82 @@ def main():
 
         with open('example_molecule.txt', 'w', encoding='utf-8') as f:
             f.write(example_content)
-        print("已创建示例文件: example_molecule.txt")
+        print("Sample files have been created: example_molecule.txt")
 
-    # 读取文件
-    filename = input("请输入文件名 (直接回车使用 example_molecule.txt): ").strip()
+    # Reading files
+    filename = input("Please enter a file name (Press Enter directly to use example_molecule.txt): ").strip()
     if not filename:
         filename = 'example_molecule.txt'
 
     try:
-        # 解析文件
+        # Parse file
         molecule_name, atoms, dipole = parse_xyz_dipole_file(filename)
-        print(f"\n分子名称: {molecule_name}")
-        print(f"原子数: {len(atoms)}")
+        print(f"\nMolecular name: {molecule_name}")
+        print(f"number of atoms: {len(atoms)}")
         print(
-            f"偶极矩: X={dipole['x']:.4f}, Y={dipole['y']:.4f}, Z={dipole['z']:.4f}, Total={dipole['total']:.4f} Debye")
+            f"dipole moment: X={dipole['x']:.4f}, Y={dipole['y']:.4f}, Z={dipole['z']:.4f}, Total={dipole['total']:.4f} Debye")
 
-        # 计算化学键
+        # Calculation of chemical bonds
         bonds = calculate_bonds(atoms)
-        print(f"化学键数: {len(bonds)}")
+        print(f"Number of chemical bonds: {len(bonds)}")
 
-        # 询问用户是否要自定义字号
-        custom_font = input("\n是否要自定义字号？(y/n，默认n): ").strip().lower()
+        # Ask the user if they want to customize the font size.
+        custom_font = input("\nDo you want to customize the font size?？(y/n，defaultn): ").strip().lower()
 
         if custom_font == 'y':
             try:
-                axis_label_size = int(input("请输入坐标轴标签字号 (默认14): ") or "14")
-                tick_label_size = int(input("请输入坐标轴刻度字号 (默认12): ") or "12")
-                title_size = int(input("请输入标题字号 (默认16): ") or "16")
-                element_label_size = int(input("请输入元素标签字号 (默认10): ") or "10")
+                axis_label_size = int(input("Please enter the font size for the axis labels. (default 14): ") or "14")
+                tick_label_size = int(input("Please enter the font size for the coordinate axis ticks. (default 12): ") or "12")
+                title_size = int(input("Please enter the title font size. (default 16): ") or "16")
+                element_label_size = int(input("Please enter the element tag font size. (default 10): ") or "10")
             except ValueError:
-                print("输入无效，使用默认字号")
+                print("Invalid input, use default font size")
                 axis_label_size, tick_label_size, title_size, element_label_size = 14, 12, 16, 10
         else:
             axis_label_size, tick_label_size, title_size, element_label_size = 14, 12, 16, 10
 
-        # 可视化
+        # Visualization
         fig, ax = visualize_molecule_with_dipole(molecule_name, atoms, dipole, bonds,
                                                  axis_label_size=axis_label_size,
                                                  tick_label_size=tick_label_size,
                                                  title_size=title_size,
                                                  element_label_size=element_label_size)
 
-        # 询问是否保存图片
-        save_image = input("\n是否保存图片？(y/n，默认n): ").strip().lower()
+        # Ask if you want to save the image
+        save_image = input("\nSave image?？(y/n，default n): ").strip().lower()
         if save_image == 'y':
-            # 默认使用SVG格式
-            output_filename = input("请输入输出文件名（默认：molecule.svg）: ").strip()
+            # SVG format is used by default.
+            output_filename = input("Please enter the output file name（default：molecule.svg）: ").strip()
             if not output_filename:
                 output_filename = "molecule.svg"
 
-            # 确保文件名有正确的扩展名
+            # Make sure the filename has the correct extension.
             if not output_filename.endswith(('.svg', '.png', '.jpg', '.jpeg', '.pdf')):
                 output_filename += '.svg'
 
-            # 根据扩展名确定保存参数
+            # Determine the storage parameters based on the file extension
             if output_filename.endswith('.svg'):
-                # SVG格式 - 矢量图形，可无限缩放
-                print(f"正在保存SVG矢量图片到 {output_filename}...")
+                # SVG format - Vector graphics, infinitely scalable
+                print(f"Saving SVG vector image to {output_filename}...")
                 fig.savefig(output_filename, format='svg', bbox_inches='tight',
                             facecolor='white', edgecolor='none')
-                print(f"SVG矢量图片已保存: {output_filename}")
-                print("提示：SVG格式可无限缩放，适合出版和印刷")
+                print(f"SVG Vector image saved: {output_filename}")
+                print("Note: SVG format can be scaled infinitely, making it suitable for publishing and printing")
             elif output_filename.endswith('.pdf'):
-                # PDF格式 - 也是矢量格式
-                print(f"正在保存PDF矢量图片到 {output_filename}...")
+                # PDF format - also a vector format
+                print(f"Saving PDF vector image to {output_filename}...")
                 fig.savefig(output_filename, format='pdf', bbox_inches='tight',
                             facecolor='white', edgecolor='none')
-                print(f"PDF矢量图片已保存: {output_filename}")
+                print(f"The PDF vector image has been saved: {output_filename}")
             else:
-                # 其他格式（PNG, JPG等）- 位图格式，使用高DPI
-                print(f"正在保存高分辨率图片到 {output_filename}...")
+                # Other formats (PNG, JPG, etc.) - bitmap formats, using high DPI
+                print(f"Saving high-resolution image to {output_filename}...")
                 fig.savefig(output_filename, dpi=400, bbox_inches='tight',
                             facecolor='white', edgecolor='none')
-                print(f"高分辨率图片已保存: {output_filename}")
-                print(f"图片分辨率: 4800x4000 像素 (超4K)")
+                print(f"High-resolution images have been saved: {output_filename}")
+                print(f"Image resolution: 4800x4000 Pixels (Super 4K)")
 
-        # 添加鼠标交互
+        # Add mouse interaction
         def on_move(event):
             if event.inaxes == ax and event.button:
                 ax.view_init(elev=ax.elev + (event.ydata - on_move.last_y) * 0.5,
@@ -437,10 +437,11 @@ def main():
         plt.show()
 
     except FileNotFoundError:
-        print(f"错误: 找不到文件 '{filename}'")
+        print(f"Error: File not found '{filename}'")
     except Exception as e:
-        print(f"错误: {str(e)}")
+        print(f"Error: {str(e)}")
 
 
 if __name__ == "__main__":
+
     main()
